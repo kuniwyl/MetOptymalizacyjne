@@ -1,7 +1,8 @@
 clc;
 clear;
+close all;
 
-file = load("main2\isoPerimData.mat");
+file = load("isoPerimData.mat");
 
 C = file.C;
 F = file.F;
