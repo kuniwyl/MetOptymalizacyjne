@@ -1,3 +1,5 @@
+clc; clear all; close all;
+
 % Definicja funkcji φ(s)
 phi = @(s) 20 * s.^2 - 44 * s + 29;
 
@@ -20,9 +22,9 @@ figure;
 hold on;
 
 % Wykres funkcji φ(s)
-phiP = plot(s_values, phi_values, 'DisplayName', '\phi(s)');
+phiP = plot(s_values, phi_values, 'DisplayName', '\phi(s) = 20s^2-44s+29');
 % Wykres funkcji afinicznej l(s, alpha)
-plot(s_values, l(s_values, 0.0), 'black');
+p_black = plot(s_values, l(s_values, 0.0), 'black', 'DisplayName', 'y = \phi(0) + \alpha\phi(0)s');
 plot(s_values, l(s_values, 0.1), 'black');
 plot(s_values, l(s_values, 0.2), 'black');
 plot(s_values, l(s_values, 0.3), 'black');
@@ -34,9 +36,11 @@ plot(s_values, l(s_values, 1.0), 'black');
 xlabel('s');
 ylabel('Wartość');
 title('Porównanie funkcji \phi(s) i l(s, \alpha) dla danego \alpha');
+grid on;
+ylim([-30, 50]);
 
 % Dodanie legendy
-legend([phiP], 'Location', 'best');
+legend([phiP, p_black], 'Location', 'best');
 
 
 % Wykonaj pętlę while
