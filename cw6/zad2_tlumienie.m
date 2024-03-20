@@ -8,7 +8,7 @@ t = 0.1;
 f0 = @(x) t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - countLog(1 - (x - xc)' * P * (x - xc));
 
 % Punkt startowy
-x0 = [2; -2];
+x0 = [1; 1];
 
 % Dokładność rozwiązania
 epsilon = 1e-4;
@@ -22,34 +22,37 @@ x = x0;
 g = gradient_f0(x, P, xc,t);
 v = -inv(hessian_f0(x,P,xc, t))*g;
 dek_N = -(g')*v;
- f0(x)
+ f0(x);
 
 while dek_N > epsilon
     s = 1;
     while countLog(1 - (x + s * dek_N - xc)'*P*(x + s * dek_N - xc)) == inf || f0(x+s*v) > (f0(x) + s*alpha*g'*v)
-        f0(x+s*v)
-        s = beta * s
+        f0(x+s*v);
+        s = beta * s;
     end
     x = x + s*v;
     dek_N = -g'*v;
     g = gradient_f0(x, P, xc,t);
     v = -inv(hessian_f0(x,P,xc, t))*g;
-    f_value = f0(x)
+    f_value = f0(x);
 end
 
 x
 f_value
 
-%CVX
-%cvx_begin
-%    variable x(2)
-%    minimize(f0(x))
-%cvx_end
-%x
-%f0(x)
-
 % fminsearch
-[x_fmin, fval_fmin] = fminsearch(f0, x0);
+options = optimset('TolX', epsilon, 'MaxFunEvals', 1e9, 'MaxIter', 1e9);
+[x_fmin, fval_fmin] = fminsearch(f0, x0,options)
+
+
+f0 = t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc));
+% CVX
+cvx_begin
+    variable x(2);
+    % Cel optymalizacji
+    minimize(f0);
+    % Ograniczenie
+cvx_end
 
 % Definicje gradientu i hesjanu
 function g = gradient_f0(x, P, xc, t)
@@ -72,3 +75,7 @@ function v = countLog(x)
         v = log(x);
     end
 end
+
+
+
+
