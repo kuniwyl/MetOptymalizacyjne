@@ -44,7 +44,6 @@ while dek_N > epsilon
     g = gradient_f0(x, P, xc);
     v = -inv(hessian_f0(x,P))*g;
     f_value = f0(x);
-    f_value
 
     plot(x(1), x(2), 'ro'); % Punkty iteracyjne
     % Dodanie poziomicy przechodzącej przez punkt iteracyjny

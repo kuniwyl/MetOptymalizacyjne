@@ -3,7 +3,7 @@ clc; clear; close all;
 % Dane funkcji
 P = [7, sqrt(3); sqrt(3), 5]/8; % Macierz P
 xc = [1; 1]; % Wektor xc
-t = 0.1;
+t = 10;
 % Definicja funkcji f0(x)
 f0 = @(x) t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - countLog(1 - (x - xc)' * P * (x - xc));
 
@@ -37,12 +37,13 @@ while dek_N > epsilon
     f_value = f0(x);
 end
 
-x
-f_value
+disp(['Optimal point: ', mat2str(x)]);
 
 % fminsearch
-options = optimset('TolX', epsilon, 'MaxFunEvals', 1e9, 'MaxIter', 1e9);
-[x_fmin, fval_fmin] = fminsearch(f0, x0,options)
+options = optimset('Display', 'iter', 'TolFun', epsilon);
+[x_fmin, fval_fmin] = fminsearch(f0, x0,options);
+
+disp(['fminsearch Optimal point: ', mat2str(x_fmin)]);
 
 
 f0 = t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc));
@@ -50,9 +51,12 @@ f0 = t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x 
 cvx_begin
     variable x(2);
     % Cel optymalizacji
-    minimize(f0);
+    minimize(t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc)));
     % Ograniczenie
 cvx_end
+
+% Display the results
+disp(['CVX Optimal point: ', mat2str(x)]);
 
 % Definicje gradientu i hesjanu
 function g = gradient_f0(x, P, xc, t)
