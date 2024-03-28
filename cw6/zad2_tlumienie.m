@@ -3,14 +3,10 @@ clc; clear; close all;
 % Dane funkcji
 P = [7, sqrt(3); sqrt(3), 5]/8; % Macierz P
 xc = [1; 1]; % Wektor xc
-<<<<<<< HEAD
 t = 0.1;
 %t = 1;
 %t = 10;
 
-=======
-t = 10;
->>>>>>> 04c60a93a74e7b155689bf9b1c70b0700158bdc3
 % Definicja funkcji f0(x)
 f0 = @(x) t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - countLog(1 - (x - xc)' * P * (x - xc));
 
@@ -45,7 +41,6 @@ while dek_N > epsilon
 end
 
 disp(['Optimal point: ', mat2str(x)]);
-disp(['Optimal point: ', mat2str(x)]);
 
 % fminsearch
 options = optimset('Display', 'iter', 'TolFun', epsilon);
@@ -57,19 +52,13 @@ options = optimset('Display', 'iter', 'TolFun', epsilon);
 
 disp(['fminsearch Optimal point: ', mat2str(x_fmin)]);
 
-
-f0 = t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc));
 % CVX
 cvx_begin
     variable x(2);
     % Cel optymalizacji
     minimize(t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc)));
-    minimize(t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc)));
     % Ograniczenie
 cvx_end
-
-% Display the results
-disp(['CVX Optimal point: ', mat2str(x)]);
 
 % Display the results
 disp(['CVX Optimal point: ', mat2str(x)]);

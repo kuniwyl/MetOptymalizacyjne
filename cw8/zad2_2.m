@@ -1,5 +1,5 @@
 function penalty_algorithm()
-    clc; clear; close all;
+    clc; clear;
     % Objective function
     function y = f(x)
         y = (x(1) - 1)^2 + (x(2) - 1)^2 + (x(3) - 1)^2;

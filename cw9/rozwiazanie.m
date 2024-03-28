@@ -60,15 +60,16 @@ disp(x);
 disp('Optimal function value:');
 disp(f(x));
 
-clc; clear;
-p = 1/8*[7, sqrt(3);sqrt(3), 5];
+% Zadanie 2
+clear;
 % Define the optimization function with its variables
-f = @(x) exp(x(1)+3*x(2)-0.1)+exp(-x(1)-0.1)+(x-[1;1])'*p*(x-[1;1]);
+f = @(x) 100*(x(2) - x(1)^2)^2 + (1 - x(1))^2;
 % Define the gradient of the function
-grad_f = @(x) [exp(x(1)+3*x(2)-0.1)-exp(-x(1)-0.1); 3*exp(x(1)+ 3*x(2)-0.1)] + 2*p*(x-[1;1]);
+grad_f = @(x) [-400*x(1)*(x(2) - x(1)^2) - 2*(1 - x(1));
+    200*(x(2) - x(1)^2)];
 
 % Initial conditions
-x = [2; -2];
+x = [0; 0];
 H = eye(2);
 alpha = 0.5;
 beta = 0.5;
@@ -106,11 +107,10 @@ while true && iter < maxIter
     %H_new = H + ((del_x - H*y)*(del_x - H*y)') / ((del_x - H*y)'*y);
 
     % Poprawka Davidona-Fletchera-Powella DFP
-    %H_new = H + (del_x*del_x') / (del_x'*y) - (H*y)*(H*y)' / (y'*H*y);
+    H_new = H + (del_x*del_x') / (del_x'*y) - (H*y)*(H*y)' / (y'*H*y);
 
     %poprawka Broydena-Fletchera-Goldfarba-Shanno (BFGS) wersja z innych źródeł
-    H_new = H - (H*y*(H*y)') / (y'*H*y) + (del_x*del_x') / (del_x'*y) ...
-        + ((del_x*y'*H + H*y*del_x') / (y'*H*y));
+    %H_new = H - (H*y*(H*y)') / (y'*H*y) + (del_x*del_x') / (del_x'*y) + ((del_x*y'*H + H*y*del_x') / (y'*H*y));
     H = H_new;
     
     x = x_new;
