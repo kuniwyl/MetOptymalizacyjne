@@ -1,6 +1,7 @@
 function augmented_lagrangian_method
     clc; clear; close all;
-    % Objective function
+
+    %Funckcja celu
     function y = f(x)
         y = (x(1) - 1)^2 + (x(2) - 1)^2 + (x(3) - 1)^2;
     end
@@ -13,7 +14,7 @@ function augmented_lagrangian_method
         y = [g1(x);g2(x)];
     end
 
-    % Constraint functions
+    % funkcje ograniczeń
     function y = g1(x)
         y = x(1)^2 + 0.5*x(2)^2 + x(3)^2 - 1;
     end
@@ -29,7 +30,7 @@ function augmented_lagrangian_method
         ];
     end
 
-    % Augmented Lagrangian
+    % Rozszeżony Lagranźjan
     function y = L_A(x, z, mu)
         y = [
             f(x);
@@ -37,34 +38,30 @@ function augmented_lagrangian_method
         ];
     end
 
-    % Initialization
-    x = [0; 0; 0];  % Starting point
-    z = [0; 0];     % Lagrange multipliers
-    mu = 1;         % Penalty parameter
+    % zmienne początkowe
+    x = [0; 0; 0];  % Punkt startowy
+    z = [0; 0];     % Mnożnik lagrażjanu
+    mu = 1;         % parametr kary
 
-    % For storing history
+    % Przechowywanie danych
     feasibility_residuals = [];
     optimality_residuals = [];
     mus = [];
 
-    % Optimization options
+    % Opcje optymalizacji
     options = optimoptions('lsqnonlin', 'Algorithm', 'levenberg-marquardt', 'Display', 'off');
 
-    % Augmented Lagrangian method iteration
-    for k = 1:100  % Maximum number of iterations
-        % Solve the minimization problem using fminunc
+    % Pętla główna
+    for k = 1:100 
         xOld = x;
         [x, ~] = lsqnonlin(@(x)L_A(x, z, mu), x, [], [], options);
 
-        % Update z
         z = z + 2 * mu * [g1(x); g2(x)];
 
-        % Compute residuals
         optimality_residuals(k) = norm(2*df(x)'*f(x) + dg(x)'*z);
         feasibility_residuals(k) = norm([g1(x); g2(x)]);
         mus = [mus, mu];
 
-        % Check stopping criteria
         if feasibility_residuals(k) < 1e-5 && optimality_residuals(k) < 1e-5
             'out'
             break;

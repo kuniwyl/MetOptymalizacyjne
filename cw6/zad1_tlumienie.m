@@ -47,7 +47,7 @@ while dek_N > epsilon
 
     plot(x(1), x(2), 'ro'); % Punkty iteracyjne
     % Dodanie poziomicy przechodzącej przez punkt iteracyjny
-    contour(X, Y, Z, [f_value, f_value], 'LineColor', 'b', levels=100);
+    contour(X, Y, Z, [f_value, f_value], 'LineColor', 'b', levels=250);
 
     % Dodanie etykiety z wartością na poziomicach
     text(x(1), x(2), num2str(f_value), 'Color', 'red', 'FontSize', 10);

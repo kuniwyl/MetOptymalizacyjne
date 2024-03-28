@@ -1,7 +1,7 @@
 clc; clear; close all;
 
-n = 10;
-m = 10;
+n = 50;
+m = 50;
 A = randn(m, n);
 b = randn(m, 1);
 

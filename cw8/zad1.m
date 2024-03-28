@@ -1,7 +1,5 @@
 function augmented_lagrangian_task_lsq
-    clc; clear; close all;
 
-    % Define the functions f(x) and g(x)
     function y = f(x)
         y = [x(1) + exp(-x(2)); x(1)^2 + 2*x(2) + 1];
     end
