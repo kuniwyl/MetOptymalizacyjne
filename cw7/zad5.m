@@ -1,51 +1,64 @@
-clc; clear; close all;
+close all
+clear all
+clc
 
-% Wczytanie danych pomiarowych
-load('reductionData.mat'); % Załóżmy, że plik zawiera zmienne 't' i 'y'
+load("reductionData.mat")
+k_max = 35;
 
-% Początkowe przybliżenia parametrów [k, gamma, beta]
-initialParams = [1, 1, 1]; % Ustawienie wstępnych wartości parametrów
+y = y * 1000;
+t = t * 1000;
 
-% Definicja modelu oscylacyjnego zgodnie z równaniem (60)
-h_osc = @(params, t) params(1) * (1 - exp(-params(2)*t) .* (params(2)/params(3) * cos(params(3)*t) + sin(params(3)*t)/params(3)));
+% 65
+h = @(x, t) x(1) * (1 - exp(-x(2) * t) .* (cos(x(3) * t) + (x(2) / x(3)) * sin(x(3) * t)));
+f = @(x) x(1) * (1 - exp(-x(2) * t) .* (cos(x(3) * t) + (x(2) / x(3)) * sin(x(3) * t))) - y;
 
-% Funkcja rezydualna, która oblicza różnicę między modelem a danymi
-residuals = @(params) h_osc(params, t) - y;
+x0 = [1 1 1]; % initial values of model parameters
+n = length(x0);
 
-% Opcje dla algorytmu Levenberga-Marquardta
-options = optimoptions('lsqnonlin', 'Algorithm', 'levenberg-marquardt', 'Display', 'iter');
+% 67
+J = @(x) [
+    1 - exp(-x(2)*t).*(cos(x(3)*t)+(x(2)/x(3))*sin(x(3)*t)) ...
+    x(1)*exp(-x(2)*t).*(t.*cos(x(3)*t) - ((1 - t*x(2))/x(3)).*sin(x(3)*t)) ...
+    x(1)*exp(-x(2)*t).*((t+(x(2)/x(3)^2)).*sin(x(3)*t) - (x(2)/x(3))*t.*cos(x(3)*t))
+];
 
-% Wykonanie dopasowania modelu do danych za pomocą funkcji lsqnonlin
-[paramEstimates, resnorm, residual, exitflag, output] = lsqnonlin(residuals, initialParams, [], [], options);
-
-% Oszacowane parametry
-k_est = paramEstimates(1);
-gamma_est = paramEstimates(2);
-beta_est = paramEstimates(3);
-
-% Wyniki
-fprintf('Oszacowane wzmocnienie k: %f\n', k_est);
-fprintf('Oszacowany parametr gamma: %f\n', gamma_est);
-fprintf('Oszacowany parametr beta: %f\n', beta_est);
-
-% Generowanie danych do wykresu
-t_fit = linspace(min(t), max(t), 100);
-y_fit = h_osc(paramEstimates, t_fit);
-
-% Rysowanie wykresu
-figure;
-plot(t, y, 'b.'); % Dane eksperymentalne
-hold on;
-plot(t_fit, y_fit, 'r-'); % Dopasowana krzywa
-xlabel('Czas t [s]');
-ylabel('Odpowiedź skokowa h(t)');
-legend('Dane eksperymentalne', 'Dopasowana krzywa');
-title('Dopasowanie odpowiedzi skokowej drugiego rzędu');
-grid on;
-
-% Zakończenie procesu optymalizacji
-if exitflag == 1
-    disp('Algorytm osiągnął rozwiązanie.');
-else
-    disp('Algorytm nie osiągnął rozwiązania, sprawdź dane wejściowe lub zmień parametry początkowe.');
+% Lavenberg-Matquardt Algorithm
+X = zeros(n,k_max+1);
+X(:,1) = x0;
+L = 0.5;
+for k = 1:k_max
+    x = X(:,k);
+    xNew = x - inv(transpose(J(x)) * J(x) + L * eye(n)) * transpose(J(x)) * f(x);
+    if ( norm(f(xNew)) < norm(f(x0)) )
+        X(:,k+1) = xNew;
+        L = 0.8*L;
+    else
+        X(:,k+1) = x;
+        L = 2*L;
+    end
 end
+X(:, end) / 1000
+xOptimal = X(:,end);
+
+figure;
+p = 1:1:k_max+1;
+plot(p, X(1,:), "Color", "black", "LineWidth", 2)
+hold on;
+plot(p, X(2,:), "Color", "red", "LineWidth", 2)
+plot(p, X(3,:), "Color", "blue", "LineWidth", 2)
+
+figure
+plot01 = plot(t,y,".","MarkerEdgeColor","r","MarkerFaceColor","r");
+hold on
+tPlot = linspace(t(1),t(end));
+plot02 = plot(tPlot,h(x0,tPlot),"b","LineWidth",1);
+hold on
+plot03 = plot(tPlot,h(xOptimal,tPlot),"k","LineWidth",1);
+
+legend([plot01,plot02,plot03],"measurement", "first guess", "final fit")
+grid on
+nfontslatex = 18;
+nfonts = 14;
+set(gca,"FontSize",nfonts);
+ylabel("$y = A\sin(\omega t + \phi)$ [a.u.]","Interpreter","Latex","FontSize",nfontslatex)
+xlabel("$t$ [s]","Interpreter","Latex","FontSize",nfontslatex)

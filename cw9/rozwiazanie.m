@@ -41,14 +41,14 @@ while true && iter < maxIter
     
     rho = 1/(y'*s);
     % Poprawka rzędu jeden
-    %H_new = H + ((del_x - H*y)*(del_x - H*y)') / ((del_x - H*y)'*y);
+    H_new = H + ((del_x - H*y)*(del_x - H*y)') / ((del_x - H*y)'*y);
 
     % Poprawka Davidona-Fletchera-Powella DFP
     %H_new = H + (del_x*del_x') / (del_x'*y) - (H*y)*(H*y)' / (y'*H*y);
 
     %poprawka Broydena-Fletchera-Goldfarba-Shanno (BFGS) wersja z innych źródeł
-    H_new = H - (H*y*(H*y)') / (y'*H*y) + (del_x*del_x') / (del_x'*y) ...
-        + ((del_x*y'*H + H*y*del_x') / (y'*H*y));
+    %H_new = H - (H*y*(H*y)') / (y'*H*y) + (del_x*del_x') / (del_x'*y) ...
+      %  + ((del_x*y'*H + H*y*del_x') / (y'*H*y));
     H = H_new;
     
     x = x_new;
@@ -112,7 +112,6 @@ while true && iter < maxIter
     %poprawka Broydena-Fletchera-Goldfarba-Shanno (BFGS) wersja z innych źródeł
     %H_new = H - (H*y*(H*y)') / (y'*H*y) + (del_x*del_x') / (del_x'*y) + ((del_x*y'*H + H*y*del_x') / (y'*H*y));
     H = H_new;
-    
     x = x_new;
 end
 

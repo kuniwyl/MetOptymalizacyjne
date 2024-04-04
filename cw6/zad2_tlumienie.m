@@ -47,13 +47,9 @@ options = optimset('Display', 'iter', 'TolFun', epsilon);
 [x_fmin, fval_fmin] = fminsearch(f0, x0,options);
 
 disp(['fminsearch Optimal point: ', mat2str(x_fmin)]);
-options = optimset('Display', 'iter', 'TolFun', epsilon);
-[x_fmin, fval_fmin] = fminsearch(f0, x0,options);
-
-disp(['fminsearch Optimal point: ', mat2str(x_fmin)]);
 
 % CVX
-cvx_begin
+cvx_begin quiet
     variable x(2);
     % Cel optymalizacji
     minimize(t * (exp(x(1) + 3*x(2) - 0.1) + exp(-x(1) - 0.1)) - log(1 - (x - xc)'*P*(x - xc)));
