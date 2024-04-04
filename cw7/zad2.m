@@ -1,85 +1,75 @@
-close all; clear all; clc;
+close all
+clear all
+clc
 
-% Wczytywanie danych pomiarowych
-load('LM04Data.mat');
 
-lambda = 1.0; % Współczynnik regularyzacji
-k_max = 35; % Maksymalna liczba iteracji
+load("LM04Data")
+k_max = 25;
+h = @(x,t) x(1)*exp(-t * x(4)).*sin(x(2)*t+x(3));
+f = @(x) x(1) *exp(-t * x(4)).*sin(x(2)*t+x(3))-y;
 
-% Definicja funkcji modelującej
-model = @(p, t) p(1) * exp(-p(2) * t) .* sin(p(3) * t + p(4));
+x0 = [1, 7*pi, 0, 0]; % initial values of model parameters
+n = length(x0);
 
-% Definicja funkcji błędu (różnica między modelem a danymi)
-f = @(p) model(p, t) - y;
 
-% Początkowe wartości parametrów modelu [A, omega, phi]
-params = [1.0; 0.1; 1; 0.0]; % Początkowe wartości parametrów modelu [A, a, omega, phi]
+J = @(x) [exp(-t*x(4)).*sin(x(2)*t+x(3)) exp(-t*x(4))*x(1).*t.*cos(x(2)*t+x(3)) exp(-t*x(4)).*x(1).*cos(x(2)*t+x(3)) -exp(-t*x(4)).*t.*x(1).*sin(x(2)*t+x(3))];
 
-% Liczba parametrów
-n = length(params);
-
-% Przygotowanie wykresu danych pomiarowych
-figure;
-plot(t, y, 's', 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r');
-hold on;
-
-tPlot = linspace(min(t), max(t), 1000)';
-plot(tPlot, model(params, tPlot), 'b', 'LineWidth', 2);
-grid on;
-
-% Definicja Jakobianu
-J = @(p) [exp(-p(2) * t) .* sin(p(3) * t + p(4)), ...
-          -p(1) * t .* exp(-p(2) * t) .* sin(p(3) * t + p(4)), ...
-          p(1) * exp(-p(2) * t) .* t .* cos(p(3) * t + p(4)), ...
-          p(1) * exp(-p(2) * t) .* cos(p(3) * t + p(4))];
-
-% Inicjalizacja przechowywania wyników
-X = zeros(n, k_max + 1);
-X(:, 1) = params;
-
-% Parametr zaufania
-L = ones(k_max, 1);
-
-% Wartości f(x)
-f_war = zeros(k_max, 1);
-
-% Główna pętla algorytmu
+% Lavenberg-Matquardt Algorithm
+X = zeros(n,k_max+1);
+X(:,1) = x0;
+L = zeros(1, k_max + 1);
+F_norm = zeros(1, k_max + 1);
+L(1) = 1.0;
 for k = 1:k_max
-    x = X(:, k);
-    xNew = x - ((J(x)' * J(x)) + L(k) * eye(n)) \ (J(x)' * f(x));
-    if norm(f(xNew)) < norm(f(x))
-        X(:, k + 1) = xNew;
-        L(k + 1) = 0.8 * L(k); % Zmniejszenie parametru lambda
+    x = X(:,k);
+    xNew = x - inv(transpose(J(x)) * J(x) + L(k) * eye(n)) * transpose(J(x)) * f(x);
+    if ( norm(f(xNew)) < norm(f(x0)) )
+        X(:,k+1) = xNew;
+        L(k + 1) = 0.8*L(k);
     else
-        X(:, k + 1) = x;
-        L(k + 1) = 2 * L(k); % Zwiększenie parametru lambda
+        X(:,k+1) = x;
+        L(k + 1) = 2*L(k);
     end
-    f_war(k) = sum(f(xNew).^2);
+    F_norm(k) = norm(f(xNew));
+    %plot(k,L,"s","MarkerEdgeColor","black","MarkerFaceColor","black");
+    %hold on;
+    %plot(k,norm(f(xNew)),"s","MarkerEdgeColor","r","MarkerFaceColor","r");
+    %hold on;
 end
-
-% Optymalne wartości parametrów
-xOptimal = X(:, end);
-
-% Rysowanie wykresu modelu z optymalnymi wartościami parametrów
-plot(tPlot, model(xOptimal, tPlot), 'k', 'LineWidth', 2);
-legend('Dane pomiarowe', 'Model początkowy', 'Model optymalny');
-xlabel('Czas t [s]');
-ylabel('y = A\sin(\omega t + \varphi) [a.u.]');
-
-
-% Wykres historii wartości parametru ufności lambda
 figure;
-plot(L, 'ko-');
-title('Historia wartości parametru ufności \lambda');
-xlabel('Numer iteracji k');
-ylabel('\lambda');
+plot(1:1:k_max+1,L,"s","MarkerEdgeColor","black","MarkerFaceColor","black");
 
-% Wykres historii wartości funkcji celu
 figure;
-plot(f_war, 'ko-');
-title('Historia wartości funkcji celu');
-xlabel('Numer iteracji k');
-ylabel('||f(x)||');
+plot(1:1:k_max+1,F_norm,"s","MarkerEdgeColor","r","MarkerFaceColor","r");
 
-% Wyświetlanie końcowych parametrów
-fprintf('A = %f, a = %f, omega = %f, phi = %f\n', xOptimal(1), xOptimal(2), xOptimal(3), xOptimal(4));
+xOptimal = X(:,end)
+
+nfontslatex = 18;
+nfonts = 14;
+
+figure
+plot01 = plot(t,y,".","MarkerEdgeColor","r","MarkerFaceColor","r");
+hold on
+tPlot = linspace(t(1),t(end),1e+3);
+plot02 = plot(tPlot,h(x0,tPlot),"b","LineWidth",2);
+hold on
+plot03 = plot(tPlot,h(xOptimal,tPlot),"k","LineWidth",2);
+
+legend([plot01,plot02,plot03],"measurement", "first guess", "final fit")
+grid on
+set(gca,"FontSize",nfonts);
+ylabel("$y = A\sin(\omega t + \phi)$ [a.u.]","Interpreter","Latex","FontSize",nfontslatex)
+xlabel("$t$ [s]","Interpreter","Latex","FontSize",nfontslatex)
+
+figure
+set(gca,"FontSize",nfonts);
+subplot(3,1,1)
+plot((0:k_max),X(1,:),"k","LineWidth",2)
+ylabel("$A$ [a.u.]","Interpreter","Latex","FontSize",nfontslatex)
+subplot(3,1,2)
+plot((0:k_max),X(2,:),"k","LineWidth",2)
+ylabel("$\omega$ [rad/s]","Interpreter","Latex","FontSize",nfontslatex)
+subplot(3,1,3)
+plot((0:k_max),X(3,:),"k","LineWidth",2)
+ylabel("$\varphi$ [rad]","Interpreter","Latex","FontSize",nfontslatex)
+xlabel("iteration number","Interpreter","Latex","FontSize",nfontslatex)
